@@ -143,6 +143,11 @@ impl App for MyApp {
         }
         let mut click = None;  
         egui::CentralPanel::default().show(ctx, |ui| {
+            egui::menu::bar(ui, |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
+                    egui::global_dark_light_mode_buttons(ui);
+                }); 
+            }); 
             ui.vertical_centered(|ui | 
             {
                 egui::Grid::new("chess board").num_columns(9).show(ui, |ui| {
