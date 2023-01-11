@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 use chess::{setup_fonts, ChessPiece, ChessType, calculate_operators};
 use eframe::epaint::{Color32, Stroke};
 use eframe::{App, NativeOptions};
-use eframe::egui;
+use eframe::egui::{self, Visuals};
 use eframe::egui::RichText; 
 
 fn main() {
@@ -127,6 +127,7 @@ impl App for MyApp {
         let mut removes = Vec::new(); 
         let ref mut a = self.animations; 
         let ai = a.iter_mut().enumerate(); 
+        // get the dark mode enabled or not 
         for i in ai {
             let c = (i.1).change();
             match c {
@@ -145,7 +146,13 @@ impl App for MyApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
-                    egui::global_dark_light_mode_buttons(ui);
+                    let rst = match ui.visuals().dark_mode {
+                        true => Visuals::dark(), 
+                        false => Visuals::light(),
+                    } .light_dark_small_toggle_button(ui);
+                    if let Some(rst) = rst {
+                        ctx.set_visuals(rst);
+                    }
                 }); 
             }); 
             ui.vertical_centered(|ui | 
