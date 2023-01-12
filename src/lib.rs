@@ -1,631 +1,588 @@
 use eframe::egui;
+use std::collections::VecDeque;
 
-pub fn setup_fonts(ctx : &egui::Context) {
-    let mut fonts = egui::FontDefinitions::default();  
-    fonts.font_data.insert("font1".into(), egui::FontData::from_static(
-        include_bytes!("/Users/cutiedeng/downloads/lxgw/LXGWWenKai-Regular.ttf")
-    )); 
-    fonts.families.entry(egui::FontFamily::Proportional).or_default().insert(0, "font1".to_owned()); 
-    fonts.families.entry(egui::FontFamily::Monospace).or_default().push("font1".to_owned()); 
-    ctx.set_fonts(fonts); 
+use eframe::epaint::{Color32, Stroke};
+use eframe::App;
+use eframe::egui::{Visuals};
+use eframe::egui::RichText; 
+
+
+pub mod utils; 
+pub use utils::setup_fonts; 
+
+pub mod xiangqi; 
+
+pub struct ChessInfo {
+    info: Box<[ChessPiece; 9 * 10]>, 
 }
 
-pub fn calculate_operators(chesses: &[ChessPiece; 90], index: usize ) -> Vec<usize> {
-    assert!(index < 90, "Invalid index in chess : {index}"); 
-    let (row, col ) = (index / 9, index % 9); 
-    let mut result = Vec::new(); 
-    match chesses[index] {
-        ChessPiece::None => panic!("Invalid calculate operators: no piece on index {index}"), 
-        ChessPiece::Chess { chess_type, black } => {
-            match chess_type {
-                ChessType::BING => {
-                    match black {
-                        false => {
-                            if row < 9 {
-                                let nxt = (row + 1) * 9 + col; 
-                                match &chesses[nxt] {
-                                    ChessPiece::Chess { chess_type: _, black: false } => (), 
-                                    _ => {
-                                        result.push(nxt); 
-                                    }
-                                }
-                            }
-                            if row >= 5 {
-                                if col > 0 {
-                                    let nxt = row * 9 + (col - 1); 
-                                    match &chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: false } => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                                if col < 8 {
-                                    let nxt = row * 9 + (col + 1); 
-                                    match &chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: false } => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        true => {
-                            if row > 0 {
-                                let nxt = (row - 1) * 9 + col; 
-                                match &chesses[nxt] {
-                                    ChessPiece::Chess { chess_type: _, black: true } => (), 
-                                    _ => {
-                                        result.push(nxt); 
-                                    }
-                                }
-                            }
-                            if row <= 4 {
-                                if col > 0 {
-                                    let nxt = row * 9 + (col - 1); 
-                                    match &chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: true } => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                                if col < 8 {
-                                    let nxt = row * 9 + (col + 1); 
-                                    match &chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: true } => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                            }
-                        }
+use xiangqi::{ChessPiece, ChessType, calculate_operators}; 
+
+pub mod chess; 
+
+
+impl ChessInfo {
+    pub fn reset(&mut self) {
+        let ref mut b = self.info; 
+        b.fill(ChessPiece::None);
+        use ChessType::*; 
+
+        let base = 0; 
+        let black = false; 
+        b[base + 0] = ChessPiece::Chess { chess_type: CHE, black }; 
+        b[base + 8] = b[base + 0]; 
+        b[base + 1] = ChessPiece::Chess { chess_type: MA, black};
+        b[base + 7] = b[base + 1]; 
+        b[base + 2] = ChessPiece::Chess { chess_type: XIANG, black}; 
+        b[base + 6] = b[base + 2]; 
+        b[base + 3] = ChessPiece::Chess { chess_type: SHI, black};
+        b[base + 5] = b[base + 3]; 
+        b[base + 4] = ChessPiece::Chess { chess_type: JIANG, black};
+
+        let base = 81; 
+        let black = true; 
+        b[base + 0] = ChessPiece::Chess { chess_type: CHE, black }; 
+        b[base + 8] = b[base + 0]; 
+        b[base + 1] = ChessPiece::Chess { chess_type: MA, black};
+        b[base + 7] = b[base + 1]; 
+        b[base + 2] = ChessPiece::Chess { chess_type: XIANG, black}; 
+        b[base + 6] = b[base + 2]; 
+        b[base + 3] = ChessPiece::Chess { chess_type: SHI, black};
+        b[base + 5] = b[base + 3]; 
+        b[base + 4] = ChessPiece::Chess { chess_type: JIANG, black};
+
+        let base = 18; 
+        let black = false; 
+        b[base + 1] = ChessPiece::Chess { chess_type: PAO, black };
+        b[base + 7] = b[base + 1];
+
+        let base = 63;  
+        let black = true; 
+        b[base + 1] = ChessPiece::Chess { chess_type: PAO, black };
+        b[base + 7] = b[base + 1];
+
+        let base = 27; 
+        let black = false; 
+        b[base + 0] = ChessPiece::Chess { chess_type: BING, black };
+        b[base + 2] = b[base]; 
+        b[base + 4] = b[base]; 
+        b[base + 6] = b[base]; 
+        b[base + 8] = b[base]; 
+
+        let base = 54; 
+        let black = true; 
+        b[base + 0] = ChessPiece::Chess { chess_type: BING, black };
+        b[base + 2] = b[base]; 
+        b[base + 4] = b[base]; 
+        b[base + 6] = b[base]; 
+        b[base + 8] = b[base]; 
+    }
+}
+
+pub struct MyApp {
+    pub chess : ChessInfo, 
+    pub animations: VecDeque<Box<dyn FontAnimation>>, 
+    pub game: GameController, 
+}
+
+pub struct GameController {
+    pub state: GameState, 
+    pub operators : Vec<MoveOperator>, 
+    /// 0: black; 1: red 
+    pub cursors : [Cursor; 2], 
+}
+
+pub struct Cursor {
+    pub position: Option<usize>, 
+}
+
+pub struct MoveOperator {
+    from_chess: ChessPiece, 
+    to_chess: ChessPiece, 
+    from_index: usize, 
+    to_index: usize, 
+}
+
+pub enum GameState {
+    RedTurn(Option<Select>), 
+    BlackTurn(Option<Select>), 
+    Win {
+        black: bool, 
+    }, 
+}
+
+pub struct Select {
+    select_id: usize, 
+    move_support: Vec<usize>, 
+}
+
+impl GameController {
+    pub fn reset(&mut self) {
+        self.state = GameState::BlackTurn(None);
+        self.operators.clear(); 
+        self.cursors = [Cursor {
+            position: Some(4), 
+        }, Cursor {
+            position: Some(85), 
+        }]; 
+    }
+}
+
+pub trait FontAnimation {
+    fn change(&mut self) -> Option<(usize, Color32)>; 
+}
+
+// every color displays on 400 ms, one update happens with 17 ms. 24 clicks for a tip 
+// three rounds, every thing done, the last one is 24 * 6 = 144 
+pub struct ClickFontAnimation {
+    position : usize, 
+    origin : Color32, 
+    target : Color32, 
+    val : i32, 
+}
+
+impl FontAnimation for ClickFontAnimation {
+    fn change(&mut self) -> Option<(usize, Color32)> {
+        self.val += 1; 
+        if self.val >= 144 {
+            self.val = 144; 
+            None 
+        } else {
+            let p = self.val / 24; 
+            Some((self.position, 
+                if p % 2 == 0 {
+                    self.target
+                } else {
+                    self.origin
+                })) 
+        }
+    }
+}
+
+impl App for MyApp {
+    fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
+        let mut m = Vec::new(); 
+        let mut removes = Vec::new(); 
+        let ref mut a = self.animations; 
+        let ai = a.iter_mut().enumerate(); 
+        for i in ai {
+            let c = (i.1).change();
+            match c {
+                Some(v) => {
+                    m.push(v);
+                },
+                None => {
+                    removes.push(i.0);
+                },
+            }
+        }
+        for r in removes.into_iter().rev() {
+            a.swap_remove_back(r);
+        }
+        let mut click = None;  
+        egui::CentralPanel::default().show(ctx, |ui| {
+            egui::menu::bar(ui, |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
+                    let rst = match ui.visuals().dark_mode {
+                        true => Visuals::dark(), 
+                        false => Visuals::light(),
+                    } .light_dark_small_toggle_button(ui);
+                    if let Some(rst) = rst {
+                        ctx.set_visuals(rst);
                     }
-                }
-                ChessType::PAO => {
-                    let mut row_increase = row + 1; 
-                    while row_increase < 10 {
-                        match chesses[row_increase * 9 + col] {
-                            ChessPiece::None => {
-                                result.push(row_increase * 9 + col);
-                            }
-                            ChessPiece::Chess { chess_type: _, black: _ } => {
-                                break; 
-                            }
-                        }
-                        row_increase += 1; 
-                    }
-                    if row_increase < 9 {
-                        // go on ~ 
-                        row_increase += 1; 
-                        while row_increase < 10 {
-                            match chesses[row_increase * 9 + col] {
-                                ChessPiece::None => (), 
-                                ChessPiece::Chess { chess_type: _, black: b} => {
-                                    if b != black {
-                                        result.push(row_increase * 9 + col); 
-                                    }
-                                    break; 
-                                }
-                            }
-                            row_increase += 1; 
-                        }
-                    }
-                    if row > 0 {
-                        let mut row_decrease = row - 1; 
-                        loop { 
-                            match chesses[row_decrease * 9 + col] {
+                }); 
+            }); 
+            ui.vertical_centered(|ui | 
+            {
+                egui::Grid::new("chess board").num_columns(9).show(ui, |ui| {
+                    for i in 0..10 {
+                        for j in 0..9 {
+                            let val = self.chess.info[i * 9 + j]; 
+                            let word; 
+                            match val {
                                 ChessPiece::None => {
-                                    result.push(row_decrease * 9 + col);
+                                    word = "";  
                                 }
-                                ChessPiece::Chess { chess_type: _, black: _ } => {
-                                    break; 
-                                }
-                            }
-                            if row_decrease == 0 {
-                                break; 
-                            }
-                            row_decrease -= 1; 
-                        }
-                        if row_decrease > 0 {
-                            row_decrease -= 1; 
-                            loop {
-                                match chesses[row_decrease * 9 + col] {
-                                    ChessPiece::None => (), 
-                                    ChessPiece::Chess { chess_type: _, black: b} => {
-                                        if b != black {
-                                            result.push(row_decrease * 9 + col);
+                                ChessPiece::Chess { chess_type, black } => {
+                                    word = match chess_type {
+                                        ChessType::BING => match black {
+                                            true => "卒", 
+                                            false => "兵", 
                                         }
-                                        break; 
-                                    }
-                                }
-                                if row_decrease == 0 {
-                                    break; 
-                                }
-                                row_decrease -= 1; 
-                            }
-                        }
-                    }
-                    let mut col_increase = col + 1; 
-                    while col_increase < 9 {
-                        match chesses[row * 9 + col_increase] {
-                            ChessPiece::None => {
-                                result.push(row * 9 + col_increase); 
-                            }
-                            ChessPiece::Chess { chess_type: _, black: _ } => {
-                                break; 
-                            }
-                        }
-                        col_increase += 1; 
-                    }
-                    if col_increase < 8 {
-                        col_increase += 1; 
-                        while col_increase < 9 {
-                            match chesses[row * 9 + col_increase] {
-                                ChessPiece::None => (), 
-                                ChessPiece::Chess { chess_type: _, black: b} => {
-                                    if b != black {
-                                        result.push(row * 9 + col_increase); 
-                                    }
-                                    break; 
-                                }
-                            }
-                            col_increase += 1; 
-                        }
-                    }
-                    let mut col_decrease = col; 
-                    while col_decrease > 0 {
-                        match chesses[row * 9 + col_decrease - 1] {
-                            ChessPiece::None => {
-                                result.push(row * 9 + col_decrease - 1);
-                            }
-                            ChessPiece::Chess { chess_type: _, black: _ } => {
-                                break; 
-                            }
-                        }
-                        col_decrease -= 1; 
-                    }
-                    if col_decrease > 1 {
-                        col_decrease -= 1; 
-                        while col_decrease > 0 {
-                            match chesses[row * 9 + col_decrease - 1] {
-                                ChessPiece::None => (), 
-                                ChessPiece::Chess { chess_type: _, black: b} => {
-                                    if b != black {
-                                        result.push(row * 9 + col_decrease - 1); 
-                                    }
-                                    break; 
-                                }
-                            }
-                            col_decrease -= 1; 
-                        }
-                    }
-                }
-                ChessType::CHE => {
-                    let mut row_increase = row + 1; 
-                    while row_increase < 10 {
-                        match chesses[row_increase * 9 + col] {
-                            ChessPiece::None => {
-                                result.push(row_increase * 9 + col);
-                            }
-                            ChessPiece::Chess { chess_type: _, black: chess_black} => {
-                                if chess_black != black {
-                                    result.push(row_increase * 9 + col);
-                                } 
-                                break; 
-                            }
-                        }
-                        row_increase += 1; 
-                    }
-                    if row > 0 {
-                        let mut row_decrease = row - 1; 
-                        loop { 
-                            match chesses[row_decrease * 9 + col] {
-                                ChessPiece::None => {
-                                    result.push(row_decrease * 9 + col);
-                                }
-                                ChessPiece::Chess { chess_type: _, black: chess_black} => {
-                                    if chess_black != black {
-                                        result.push(row_decrease * 9 + col);
-                                    } 
-                                    break; 
-                                }
-                            }
-                            if row_decrease == 0 {
-                                break; 
-                            }
-                            row_decrease -= 1; 
-                        }
-                    }
-                    let mut col_increase = col + 1; 
-                    while col_increase < 9 {
-                        match chesses[row * 9 + col_increase] {
-                            ChessPiece::None => {
-                                result.push(row * 9 + col_increase); 
-                            }
-                            ChessPiece::Chess { chess_type: _, black: chess_black} => {
-                                if chess_black != black {
-                                    result.push(row * 9 + col_increase);
-                                }
-                                break; 
-                            }
-                        }
-                        col_increase += 1; 
-                    }
-                    let mut col_decrease = col; 
-                    while col_decrease > 0 {
-                        match chesses[row * 9 + col_decrease - 1] {
-                            ChessPiece::None => {
-                                result.push(row * 9 + col_decrease - 1);
-                            }
-                            ChessPiece::Chess { chess_type: _, black: chess_black} => {
-                                if black != chess_black {
-                                    result.push(row * 9 + col_decrease - 1); 
-                                }
-                                break; 
-                            }
-                        }
-                        col_decrease -= 1; 
-                    }
-                }
-                ChessType::MA => {
-                    if row < 8 {
-                        if let ChessPiece::None = chesses[(row + 1 ) * 9 + col] {
-                            if col > 0 {
-                                let chess_camp = black; 
-                                match chesses[(row + 2) * 9 + (col - 1)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row + 2 ) * 9 + (col - 1)); 
-                                    }
-                                }
-                            }
-                            if col < 8 {
-                                let chess_camp = black; 
-                                match chesses[(row + 2) * 9 + (col + 1)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row + 2 ) * 9 + (col + 1)); 
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if row > 1 {
-                        if let ChessPiece::None = chesses[(row - 1 ) * 9 + col] {
-                            if col > 0 {
-                                let chess_camp = black; 
-                                match chesses[(row - 2) * 9 + (col - 1)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row - 2 ) * 9 + (col - 1)); 
-                                    }
-                                }
-                            }
-                            if col < 8 {
-                                let chess_camp = black; 
-                                match chesses[(row - 2) * 9 + (col + 1)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row - 2 ) * 9 + (col + 1)); 
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if col > 1 {
-                        if let ChessPiece::None = chesses[row * 9 + (col - 1)] {
-                            if row > 0 {
-                                let chess_camp = black; 
-                                match chesses[(row - 1) * 9 + (col - 2)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row - 1) * 9 + (col - 2)); 
-                                    }
-                                }
-                            }
-                            if row < 9 { 
-                                let chess_camp = black; 
-                                match chesses[(row + 1) * 9 + (col - 2)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row + 1) * 9 + (col - 2)); 
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if col < 7 {
-                        if let ChessPiece::None = chesses[row * 9 + (col + 1)] {
-                            if row > 0 {
-                                let chess_camp = black; 
-                                match chesses[(row - 1) * 9 + (col + 2)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row - 1) * 9 + (col + 2)); 
-                                    }
-                                }
-                            }
-                            if row < 9 { 
-                                let chess_camp = black; 
-                                match chesses[(row + 1) * 9 + (col + 2)] {
-                                    ChessPiece::Chess { chess_type: _, black} if black == chess_camp => (), 
-                                    _ => {
-                                        result.push((row + 1) * 9 + (col + 2)); 
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }, 
-                ChessType::XIANG => {
-                    let mut tmp = Vec::new(); 
-                    if col < 7 {
-                        match black {
-                            false => {
-                                if row < 3 {
-                                    if let ChessPiece::None = chesses[(row + 1) * 9 + (col + 1 )] {
-                                        tmp.push((row + 2) * 9 + (col + 2));  
-                                    }
-                                }
-                                if row > 1 {
-                                    if let ChessPiece::None = chesses[(row - 1) * 9 + (col + 1 )] {
-                                        tmp.push((row - 2) * 9 + (col + 2));  
-                                    }
-                                }
-                            }
-                            true => {
-                                if row < 8 {
-                                    if let ChessPiece::None = chesses[(row + 1) * 9 + (col + 1 )] {
-                                        tmp.push((row + 2) * 9 + (col + 2));  
-                                    }
-                                }
-                                if row > 6 {
-                                    if let ChessPiece::None = chesses[(row - 1) * 9 + (col + 1)] {
-                                        tmp.push((row - 2) * 9 + (col + 2)); 
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if col > 1 {
-                        match black {
-                            false => {
-                                if row < 3 {
-                                    if let ChessPiece::None = chesses[(row + 1) * 9 + (col - 1 )] {
-                                        tmp.push((row + 2) * 9 + (col - 2));  
-                                    }
-                                }
-                                if row > 1 {
-                                    if let ChessPiece::None = chesses[(row - 1) * 9 + (col - 1 )] {
-                                        tmp.push((row - 2) * 9 + (col - 2));  
-                                    }
-                                }
-                            }
-                            true => {
-                                if row < 8 {
-                                    if let ChessPiece::None = chesses[(row + 1) * 9 + (col - 1 )] {
-                                        tmp.push((row + 2) * 9 + (col - 2));  
-                                    }
-                                }
-                                if row > 6 {
-                                    if let ChessPiece::None = chesses[(row - 1) * 9 + (col - 1)] {
-                                        tmp.push((row - 2) * 9 + (col - 2)); 
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    for i in tmp {
-                        match chesses[i] {
-                            ChessPiece::Chess { chess_type: _, black: c} if c == black => (),
-                            _ => {
-                                result.push(i); 
-                            }
-                        }
-                    }
-                }
-                ChessType::SHI => {
-                    match black {
-                        false => {
-                            // red 
-                            match (row, col) {
-                                (0, 3) => {
-                                    let nxt = 1 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
+                                        ChessType::PAO => match black {
+                                            true => "砲", 
+                                            false => "炮", 
                                         }
-                                    }
-                                }
-                                (0, 5) => {
-                                    let nxt = 1 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
+                                        ChessType::CHE => match black {
+                                            true => "車",
+                                            false => "车",  
                                         }
-                                    }
+                                        ChessType::MA => match black {
+                                            true => "馬", 
+                                            false => "马", 
+                                        }
+                                        ChessType::XIANG => match black {
+                                            true => "象", 
+                                            false => "相", 
+                                        }
+                                        ChessType::SHI => match black {
+                                            true => "仕", 
+                                            false => "士", 
+                                        }
+                                        ChessType::JIANG => match black {
+                                            true => "将", 
+                                            false => "帅", 
+                                        }
+                                    }; 
                                 }
-                                (1, 4) => {
-                                    let nxts = [3, 5, 21, 23]; 
-                                    for nxt in nxts {
-                                        match chesses[nxt] {
-                                            ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                            _ => {
-                                                result.push(nxt); 
+                            }
+                            let index = i * 9 + j; 
+                            let size = 50.0; 
+                            let mut word = RichText::new(word).size(size * 0.7); 
+                            if let ChessPiece::Chess { chess_type : _, black } = val {
+                                word = if black {
+                                    word.color(Color32::BLACK)
+                                } else {
+                                    word.color(Color32::from_rgb(200, 50, 30)) 
+                                }
+                            }
+                            for &ii in m.iter() {
+                                if ii.0 == index {
+                                    word = word.color(ii.1); 
+                                    ctx.request_repaint(); 
+                                }
+                            }
+                            // use the word , with the proper font 
+                            let mut widget = egui::Button::new(word); 
+                            if j >= 3 && j < 6 && ( i < 3 || i > 6 ) {
+                                widget = widget.fill(Color32::from_gray(140)); 
+                            }
+                            let black_cursor = self.game.cursors[0].position.as_ref().map(|&v| v == index).unwrap_or(false); 
+                            let red_cursor = self.game.cursors[1].position.as_ref().map(|&v| v == index).unwrap_or(false); 
+                            match (red_cursor, black_cursor) {
+                                (true, true) => widget = widget.fill(Color32::from_rgb(134, 197, 202)), 
+                                (false, true) => widget = widget.fill(Color32::from_rgb(67, 194, 204)), 
+                                (true, false) => widget = widget.fill(Color32::from_gray(200)), 
+                                (false, false) => (), 
+                            }
+                            // widget = widget.stroke(Stroke::new(1.0, Color32::GREEN)); 
+                            match &self.game.state {
+                                &GameState::RedTurn(Some(ref v)) => {
+                                    if v.select_id == index {
+                                        widget = widget.stroke(Stroke::new(1.3, Color32::RED)); 
+                                    } else if v.move_support.contains(&index) {
+                                        widget = widget.stroke(Stroke::new(1.3, Color32::GREEN)); 
+                                    }
+                                }, 
+                                &GameState::BlackTurn(Some(ref v)) => {
+                                    if v.select_id == index {
+                                        widget = widget.stroke(Stroke::new(1.3, Color32::RED)); 
+                                    } else if v.move_support.contains(&index) {
+                                        widget = widget.stroke(Stroke::new(1.3, Color32::GREEN)); 
+                                    }
+                                }, 
+                                _ => (), 
+                            }
+                            if ui.add_sized( [size, size], widget ).clicked() {
+                                a.push_back(Box::new(
+                                    ClickFontAnimation {
+                                        position: index, 
+                                        origin: Color32::WHITE, 
+                                        target: Color32::from_rgb(130, 12, 144), 
+                                        val: 0, 
+                                    }
+                                )); 
+                                click = Some(index); 
+                            }; 
+                        }
+                        ui.end_row(); 
+                    }
+                }); 
+
+                ui.separator(); 
+
+                if ui.button("重置棋局").clicked() {
+                    self.chess.reset(); 
+                    self.game.reset(); 
+                    ctx.request_repaint(); 
+                }
+
+            } ); 
+        }); 
+
+        {
+            let input = ctx.input();
+            if input.key_released(egui::Key::PageUp) {
+                // roll the game operator ~ 
+                let p = self.game.operators.pop();  
+                if let Some(m) = p {
+                    self.chess.info[m.from_index] = m.from_chess; 
+                    self.chess.info[m.to_index] = m.to_chess; 
+                    match self.game.state {
+                        GameState::RedTurn(_) => {
+                            self.game.state = GameState::BlackTurn(None);
+                        }
+                        GameState::BlackTurn(_) => {
+                            self.game.state = GameState::RedTurn(None);
+                        }
+                        _ => (), 
+                    }
+                    return ; 
+                }
+            }
+            if input.key_released(egui::Key::Space) {
+                // input enter for red 
+                let index = self.game.cursors[1].position; 
+                match index {
+                    Some(index) => {
+                        if let GameState::RedTurn(ref mut v) = self.game.state {
+                            match v {
+                                Some(Select {
+                                    select_id,
+                                    move_support,
+                                }) => {
+                                    if *select_id == index {
+                                        *v = None; 
+                                    } else if move_support.contains(&index) {
+
+                                        // great, commit this operator ~ 
+                                        self.game.operators.push(MoveOperator {
+                                            from_chess: self.chess.info[*select_id], 
+                                            to_chess: self.chess.info[index], 
+                                            from_index: *select_id, 
+                                            to_index: index, 
+                                        }); 
+                                        self.chess.info[index] = self.chess.info[*select_id]; 
+                                        self.chess.info[*select_id] = ChessPiece::None; 
+
+                                        self.game.state = GameState::BlackTurn(None); 
+                                        
+                                    } else {
+                                        if let ChessPiece::Chess { chess_type: _, black } = self.chess.info[index] { 
+                                            if black {
+                                                *v = Some(Select {
+                                                    select_id: index, 
+                                                    move_support: calculate_operators(&self.chess.info, index), 
+                                                }); 
                                             }
                                         }
                                     }
-                                }
-                                (2, 3) => {
-                                    let nxt = 1 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
+                                },
+                                None => {
+                                    if let ChessPiece::Chess { chess_type: _, black } = self.chess.info[index] { 
+                                        if black {
+                                            *v = Some(Select {
+                                                select_id: index, 
+                                                move_support: calculate_operators(&self.chess.info, index), 
+                                            }); 
                                         }
                                     }
-                                }
-                                (2, 5) => {
-                                    let nxt = 1 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                                _ => panic!("Invalid position of SHI: {index}"), 
+                                },
                             }
+                        };
+                    }
+                    None => (), 
+                }
+            }
+            if input.key_pressed(egui::Key::W) {
+                // input for red 
+                let ref mut c = self.game.cursors[1]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let mut row = *val / 9; 
+                        let col = *val % 9; 
+                        if row > 0 {
+                            row -= 1;  
                         }
-                        true => {
-                            // black 
-                            match (row, col) {
-                                (9, 3) => {
-                                    let nxt = 8 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                                (9, 5) => {
-                                    let nxt = 8 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                                (8, 4) => {
-                                    let nxts = [84, 86, 66, 68]; 
-                                    for nxt in nxts {
-                                        match chesses[nxt] {
-                                            ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                            _ => {
-                                                result.push(nxt); 
+                        *val = row * 9 + col; 
+                    }
+                    None => (), 
+                }
+            }
+            if input.key_pressed(egui::Key::S) {
+                // input for red 
+                let ref mut c = self.game.cursors[1]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let mut row = *val / 9; 
+                        let col = *val % 9; 
+                        if row < 9 { 
+                            row += 1;  
+                        }
+                        *val = row * 9 + col; 
+                    }
+                    None => (), 
+                }
+            }
+            if input.key_pressed(egui::Key::A) {
+                // input for red 
+                let ref mut c = self.game.cursors[1]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let row = *val / 9; 
+                        let mut col = *val % 9; 
+                        if col > 0 {
+                            col -= 1; 
+                        }
+                        *val = row * 9 + col; 
+                    }
+                    None => (), 
+                }
+            }
+            if input.key_pressed(egui::Key::D) {
+                // input for red 
+                let ref mut c = self.game.cursors[1]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let row = *val / 9; 
+                        let mut col = *val % 9; 
+                        if col < 8 { 
+                            col += 1; 
+                        }
+                        *val = row * 9 + col; 
+                    }
+                    None => (), 
+                }
+            }
+            if input.key_released(egui::Key::Enter) {
+                // input enter for black (actually red )
+                let index = self.game.cursors[0].position; 
+                match index {
+                    Some(index) => {
+                        if let GameState::BlackTurn(ref mut v) = self.game.state {
+                            match v {
+                                Some(Select {
+                                    select_id,
+                                    move_support,
+                                }) => {
+                                    if *select_id == index {
+                                        *v = None; 
+                                    } else if move_support.contains(&index) {
+
+                                        // great, commit this operator ~ 
+                                        self.game.operators.push(MoveOperator {
+                                            from_chess: self.chess.info[*select_id], 
+                                            to_chess: self.chess.info[index], 
+                                            from_index: *select_id, 
+                                            to_index: index, 
+                                        }); 
+                                        self.chess.info[index] = self.chess.info[*select_id]; 
+                                        self.chess.info[*select_id] = ChessPiece::None; 
+
+                                        self.game.state = GameState::RedTurn(None); 
+                                        
+                                    } else {
+                                        if let ChessPiece::Chess { chess_type: _, black } = self.chess.info[index] { 
+                                            if !black {
+                                                *v = Some(Select {
+                                                    select_id: index, 
+                                                    move_support: calculate_operators(&self.chess.info, index), 
+                                                }); 
                                             }
                                         }
                                     }
-                                }
-                                (7, 3) => {
-                                    let nxt = 8 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
+                                },
+                                None => {
+                                    if let ChessPiece::Chess { chess_type: _, black } = self.chess.info[index] { 
+                                        if !black {
+                                            *v = Some(Select {
+                                                select_id: index, 
+                                                move_support: calculate_operators(&self.chess.info, index), 
+                                            }); 
                                         }
                                     }
-                                }
-                                (7, 5) => {
-                                    let nxt = 8 * 9 + 4; 
-                                    match chesses[nxt] {
-                                        ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                        _ => {
-                                            result.push(nxt); 
-                                        }
-                                    }
-                                }
-                                _ => panic!("Invalid position of SHI"), 
+                                },
                             }
-                        }
+                        };
                     }
+                    None => (), 
                 }
-                ChessType::JIANG => {
-                    if col > 3 {
-                        match chesses[row * 9 + col - 1] {
-                            ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                            _ => {
-                                result.push(row * 9 + col - 1);
-                            }
+            }
+            if input.key_pressed(egui::Key::ArrowUp) {
+                // input for black 
+                let ref mut c = self.game.cursors[0]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let mut row = *val / 9; 
+                        let col = *val % 9; 
+                        if row > 0 {
+                            row -= 1;  
                         }
+                        *val = row * 9 + col; 
                     }
-                    if col < 5 {
-                        match chesses[row * 9 + col + 1] {
-                            ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                            _ => {
-                                result.push(row * 9 + col + 1);
-                            }
+                    None => (), 
+                }
+            }
+            if input.key_pressed(egui::Key::ArrowDown) {
+                // input for black 
+                let ref mut c = self.game.cursors[0]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let mut row = *val / 9; 
+                        let col = *val % 9; 
+                        if row < 9 { 
+                            row += 1;  
                         }
+                        *val = row * 9 + col; 
                     }
-                    match black {
-                        false => {
-                            if row > 0 {
-                                match chesses[(row - 1) * 9 + col] {
-                                    ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                    _ => {
-                                        result.push((row - 1) * 9 + col);
-                                    }
-                                }
-                            }
-                            if row < 2 { 
-                                match chesses[(row + 1) * 9 + col] {
-                                    ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                    _ => {
-                                        result.push((row + 1) * 9 + col);
-                                    }
-                                }
-                            }
+                    None => (), 
+                }
+            }
+            if input.key_pressed(egui::Key::ArrowLeft) {
+                // input for black 
+                let ref mut c = self.game.cursors[0]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let row = *val / 9; 
+                        let mut col = *val % 9; 
+                        if col > 0 {
+                            col -= 1; 
                         }
-                        true => {
-                            if row > 7 {
-                                match chesses[(row - 1) * 9 + col] {
-                                    ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                    _ => {
-                                        result.push((row - 1) * 9 + col);
-                                    }
-                                }
-                            }
-                            if row < 9 { 
-                                match chesses[(row + 1) * 9 + col] {
-                                    ChessPiece::Chess { chess_type: _, black: chess_camp} if chess_camp == black => (), 
-                                    _ => {
-                                        result.push((row + 1) * 9 + col);
-                                    }
-                                }
-                            }
-                        }
+                        *val = row * 9 + col; 
                     }
+                    None => (), 
+                }
+            }
+            if input.key_pressed(egui::Key::ArrowRight) {
+                // input for black 
+                let ref mut c = self.game.cursors[0]; 
+                match &mut c.position {
+                    Some(val) => {
+                        let row = *val / 9; 
+                        let mut col = *val % 9; 
+                        if col < 8 { 
+                            col += 1; 
+                        }
+                        *val = row * 9 + col; 
+                    }
+                    None => (), 
                 }
             }
         }
-    }
-    result 
-}
-
-#[derive(Clone, Copy)]
-pub enum ChessPiece {
-    /// There isn't any chess on this chess. 
-    None, 
-    /// A chess piece with two info: chess type and camp 
-    Chess {
-        chess_type : ChessType, 
-        black: bool, 
+        
     }
 }
 
-/// In this type enum, we just directly use pinyin to describe the type of the chess, in chinese. 
-/// Because this is the chinese chess ) 
-#[derive(Clone, Copy)]
-pub enum ChessType {
-    /// 兵 / 卒
-    BING, 
-    /// 炮 / 砲
-    PAO,  
-    /// 车 / 車
-    CHE, 
-    /// 马 / 馬
-    MA, 
-    /// 象 / 相
-    XIANG, 
-    /// 士 / 仕
-    SHI, 
-    /// 帅 / 将
-    JIANG, 
+impl MyApp {
+    pub fn new() -> Self {
+        let mut s = Self {
+            chess : ChessInfo {
+                info : Box::new([ChessPiece::None; 9 * 10]), 
+            }, 
+            animations: VecDeque::default(), 
+            game: GameController {
+                state : GameState::BlackTurn(None), 
+                operators : Vec::new(), 
+                cursors: [
+                Cursor {
+                    position: Some(4), 
+                }, 
+                Cursor {
+                    position: Some(85),  
+                }], 
+            }
+        }; 
+        s.chess.reset(); 
+        s 
+    }
 }
