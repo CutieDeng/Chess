@@ -12,6 +12,8 @@ pub use utils::setup_fonts;
 
 pub mod xiangqi; 
 
+pub mod ui; 
+
 pub struct ChessInfo {
     info: Box<[ChessPiece; 9 * 10]>, 
 }
@@ -19,7 +21,6 @@ pub struct ChessInfo {
 use xiangqi::{ChessPiece, ChessType, calculate_operators}; 
 
 pub mod chess; 
-
 
 impl ChessInfo {
     pub fn reset(&mut self) {
@@ -559,7 +560,6 @@ impl App for MyApp {
                 }
             }
         }
-        
     }
 }
 
