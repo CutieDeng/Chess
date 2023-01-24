@@ -1,9 +1,11 @@
+use eframe::App;
+use eframe::Frame;
+use eframe::egui::{CentralPanel, Context, Ui, Layout};
 use eframe::egui;
 use std::collections::VecDeque;
 
 use eframe::epaint::{Color32, Stroke};
-use eframe::App;
-use eframe::egui::{Visuals};
+use eframe::egui::Visuals;
 use eframe::egui::RichText; 
 
 pub mod utils; 
@@ -597,3 +599,9 @@ impl MyApp {
         s 
     }
 }
+
+/// The chess game 2.0 part. 
+/// 
+/// It has a total game structure but not only the 
+pub mod core; 
+pub use crate::core::*; 
