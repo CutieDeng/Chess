@@ -6,7 +6,6 @@ use eframe::App;
 use eframe::egui::{Visuals};
 use eframe::egui::RichText; 
 
-
 pub mod utils; 
 pub use utils::setup_fonts; 
 
@@ -197,6 +196,18 @@ impl App for MyApp {
             {
                 egui::Grid::new("chess board").num_columns(9).show(ui, |ui| {
                     for i in 0..10 {
+                        if i == 5 {
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.separator(); 
+                            ui.end_row(); 
+                        }
                         for j in 0..9 {
                             let val = self.chess.info[i * 9 + j]; 
                             let word; 

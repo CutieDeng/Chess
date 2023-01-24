@@ -2,6 +2,8 @@ use eframe::{epaint::Color32, App, egui::CentralPanel};
 
 use crate::MyApp;
 
+use self::room::Room;
+
 pub struct AnimationResponse {
     pub repaint: bool, 
 }
@@ -125,9 +127,15 @@ pub enum Frame {
     RemoteGame(RemoteFrame),  
 }
 
+mod room {
+    pub struct Room {
+        
+    }
+}
+
 pub enum RemoteFrame {
     Search {
-
+        list: Vec<Room>, 
     },
     Host {
 
@@ -149,19 +157,37 @@ impl App for GameApp {
             Frame::MainPage => {
                 // draw the main title on the center ~ 
                 CentralPanel::default().show(ctx, |ui| {
-                    main_page::show(self, ui);
+                    let page_ret = main_page::show(self, ui);
+                    match page_ret {
+                        main_page::Feedback::None => (), 
+                        main_page::Feedback::Exit => {
+                            frame.close(); 
+                        }
+                        // todo 
+                        main_page::Feedback::HostGame => (), 
+                        main_page::Feedback::ClientGame => (), 
+                    }
                 }); 
             },
             Frame::NormalGame { ref mut app } => {
                 app.update(ctx, frame); 
             }
-            Frame::RemoteGame(_) => todo!(), 
+            Frame::RemoteGame(ref mut rg) => {
+                match rg {
+                    RemoteFrame::Search { list }=> {
+                        CentralPanel::default().show(ctx, |ui| {
+                            
+                        }); 
+                    }
+                    RemoteFrame::Host {  } => todo!(),
+                    RemoteFrame::Game {  } => todo!(),
+                }
+            }
         }
     }
 }
 
 pub mod main_page {
-    use std::process::ExitCode;
 
     use eframe::{egui::{Ui, RichText, Button}, epaint::vec2};
 
@@ -174,6 +200,8 @@ pub mod main_page {
     pub enum Feedback {
         None, 
         Exit, 
+        HostGame, 
+        ClientGame,
     }
 
     pub fn show(game: &mut MyGame, ui: &mut Ui) -> Feedback {
@@ -195,11 +223,17 @@ pub mod main_page {
             let text = RichText::new("主机").size(40.0);
             let button = Button::new(text).min_size(vec2(210.0, 55.0)); 
             ui.add_space(40.0);
-            ui.add(button);
+            if ui.add(button).clicked() {
+                result = Feedback::HostGame; 
+                return ; 
+            }
             let text = RichText::new("客机").size(40.0);
             let button = Button::new(text).min_size(vec2(210.0, 55.0)); 
             ui.add_space(40.0);
-            ui.add(button);
+            if ui.add(button).clicked() {
+                result = Feedback::ClientGame; 
+                return ; 
+            }
             let text = RichText::new("退出游戏").size(40.0);
             let button = Button::new(text).min_size(vec2(210.0, 55.0)); 
             ui.add_space(40.0);
@@ -210,14 +244,5 @@ pub mod main_page {
         }); 
         result 
     }
-}
 
-pub mod hot_seat {
-    use eframe::egui::Ui;
-
-    use super::GameApp;
-
-    type MyGame = GameApp; 
-    pub fn show(game: &mut MyGame, ui: &mut Ui) {
-    }
 }
