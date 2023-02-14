@@ -1,8 +1,10 @@
 use std::sync::mpsc::Receiver;
 
-use eframe::{NativeOptions, CreationContext, egui::{FontDefinitions, FontData, Context}, epaint::{FontFamily, Color32}, Frame};
+use eframe::{NativeOptions, CreationContext, Frame};
+use eframe::epaint::{FontFamily, Color32};
+use eframe::egui::{FontDefinitions, FontData, Context};
 
-use crate::{point::Point, piece::{PieceExist, Piece}, message::Message};
+use crate::{point::Point, piece::Piece, message::Message};
 
 /// 前端显示操作，阻塞调用，在绘图过程被调用完成后返回 —— 一般不再返回。
 pub fn main ( app_name : &str,  native_options : NativeOptions ) { 

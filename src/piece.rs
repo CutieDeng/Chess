@@ -77,3 +77,11 @@ pub enum Piece {
     None ,  
 }
 
+impl Piece {
+    pub fn is_none(&self) -> bool {
+        match self {
+            Piece::None => true, 
+            Piece::Exist(_) => false, 
+        }
+    } 
+}

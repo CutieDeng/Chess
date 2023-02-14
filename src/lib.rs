@@ -5,3 +5,4 @@ pub mod back_end ;
 pub mod piece ; 
 pub mod point ; 
 pub mod message;
+pub mod chess_rule;
