@@ -1,0 +1,13 @@
+[package]
+name = "zhong_hua_xiang_qi"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# gui lib for chess display 
+eframe = "0.21" 
+# random number generator 
+rand = "0.8.4" 
+u256 = "0.1.0"
