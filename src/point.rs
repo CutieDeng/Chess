@@ -6,7 +6,7 @@
 /// 游戏坐标类型，坐标为：(x, y)
 /// 特别地，x 用于描述坐标列，而 y 用于描述坐标行
 /// 这与程序中 GUI 的坐标关系具有一致性。 
-#[derive( PartialEq, Eq, Debug, Hash, Clone )]
+#[derive( PartialEq, Eq, Debug, Hash, Clone, Copy )]
 pub struct Point ( usize, usize ); 
 
 /// 根据 Point 的 x 和 y 属性构建 Point 类型 

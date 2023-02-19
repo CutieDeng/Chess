@@ -31,3 +31,6 @@
 
 pub mod point; 
 pub mod piece; 
+pub mod chess;
+pub mod step;
+pub mod track;

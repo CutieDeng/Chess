@@ -38,6 +38,17 @@ pub enum Side {
 /// 棋子类型，包含棋子种类和棋子所属阵营：这是一个可空类型
 pub struct ChessPiece ( pub Option < ( ChessType , Side ) > ) ; 
 
+impl ChessPiece {
+    /// 检查棋子是否同属某阵营
+    pub fn same_side(&self, other: Side) -> bool {
+        if let Some((_, s)) = self.0 {
+            s == other 
+        } else {
+            false 
+        } 
+    }
+}
+
 impl <'a> Into<Option<char>> for &ChessPiece { 
     fn into(self) -> Option<char> {
         if let Some((c, s)) = self.0 { 
