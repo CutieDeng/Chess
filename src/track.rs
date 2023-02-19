@@ -77,7 +77,13 @@ impl BoardTrack {
                 pawn_steps(from, side, &self.inner, result),
         }
     } 
+    /// 现在的 attempt_step 会检查操作的棋子是否是合乎规范的棋子！ 
     pub fn attempt_step( &mut self, from : Point , to : Point ) -> Option<StepTransaction> {
+        let camp = self.chess_board().get(from); 
+        let expected_camp = if self.steps.len() % 2 == 0 { Side::Red } else { Side::Black }; 
+        if ! camp.same_side(expected_camp) {
+            return None; 
+        }
         let mut steps = Vec::new(); 
         self.get_steps(from, &mut steps); 
         for step in steps {
