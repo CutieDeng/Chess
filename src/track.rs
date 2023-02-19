@@ -3,7 +3,10 @@
 //! 用于记录棋盘操作、回放棋盘操作、追踪棋盘操作 
 //! 
 
-use crate::{chess::ChessBoard, step::Step, piece::{ChessPiece, Side, ChessType}, point::{Point, self, point}};
+use crate::chess::ChessBoard;
+use crate::point::{Point, point};
+use crate::piece::{ChessPiece, Side, ChessType};
+use crate::step::Step;
 
 pub struct BoardTrack {
     inner : ChessBoard, 
@@ -39,7 +42,7 @@ impl BoardTrack {
 }
 
 impl BoardTrack {
-    pub fn step( &mut self, from : Point , to : Point ) -> StepTransaction {
+    fn step( &mut self, from : Point , to : Point ) -> StepTransaction {
         let eaten = self.inner.0[to.x()][to.y()]; 
         StepTransaction ( self , Step { from , to , eaten } ) 
     } 
@@ -47,17 +50,38 @@ impl BoardTrack {
 
 impl BoardTrack {
     pub fn get_steps ( &self, from : Point , result : &mut Vec< Point > ) -> usize { 
-        // 可行步数计数 
-        let mut count = 0; 
         // 获取棋子 
         let piece = self.inner.0[from.x()][from.y()]; 
         // 检查其上面是否有棋子 
         let Some( (piece_type , side ) ) = piece.0 else {
             return 0; 
         }; 
-
-        // 获取棋子类型 
-        todo!()
+        match piece_type {
+            ChessType::King =>
+                king_steps(from, side, &self.inner, result), 
+            ChessType::Guard => 
+                guard_steps(from, side, &self.inner, result),
+            ChessType::Elephant => 
+                elephant_steps(from, side, &self.inner, result),
+            ChessType::Horse =>
+                horse_steps(from, side, &self.inner, result),
+            ChessType::Rook =>
+                rook_steps(from, side, &self.inner, result),
+            ChessType::Cannon =>
+                cannon_steps(from, side, &self.inner, result),
+            ChessType::Pawn =>
+                pawn_steps(from, side, &self.inner, result),
+        }
+    } 
+    pub fn attempt_step( &mut self, from : Point , to : Point ) -> Option<StepTransaction> {
+        let mut steps = Vec::new(); 
+        self.get_steps(from, &mut steps); 
+        for step in steps {
+            if step == to {
+                return Some ( self.step(from, to) ); 
+            } 
+        } 
+        None 
     } 
 }
 
@@ -164,7 +188,7 @@ fn horse_steps ( from : Point , camp : Side, board : &ChessBoard , result : &mut
 }
 
 /// 假设当前位置是车，获取它的可行位置 
-fn chariot_steps ( from : Point , camp : Side, board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+fn rook_steps ( from : Point , camp : Side, board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
     let mut count = 0; 
     // 检查车的左边是否有棋子 
     let mut raw_left = from.left(); 
@@ -536,7 +560,7 @@ fn king_steps( from : Point , camp : Side , board : &ChessBoard , result : &mut 
 }
 
 /// 假设当前位置是兵，获取它的可行位置 
-fn solider_steps ( from : Point , camp : Side , board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+fn pawn_steps ( from : Point , camp : Side , board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
     let mut count = 0; 
     let nxt = match camp {
         Side::Red => Point::up, 

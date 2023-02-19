@@ -19,11 +19,11 @@ pub enum ChessType {
     /// 马
     Horse,
     /// 车
-    Chariot,
+    Rook,
     /// 炮
     Cannon,
     /// 兵
-    Soldier, 
+    Pawn, 
 }
 
 #[derive( Copy , Clone , Debug , PartialEq , Eq , Hash ) ] 
@@ -61,12 +61,12 @@ impl <'a> Into<Option<char>> for &ChessPiece {
                 (ChessType::Elephant, Side::Black) => Some('象'), 
                 (ChessType::Horse, Side::Red) => Some('马'), 
                 (ChessType::Horse, Side::Black) => Some('馬'),
-                (ChessType::Chariot, Side::Red) => Some('车'),
-                (ChessType::Chariot, Side::Black) => Some('車'), 
+                (ChessType::Rook, Side::Red) => Some('车'),
+                (ChessType::Rook, Side::Black) => Some('車'), 
                 (ChessType::Cannon, Side::Red) => Some('炮'), 
                 (ChessType::Cannon, Side::Black) => Some('砲'), 
-                (ChessType::Soldier, Side::Red) => Some('兵'), 
-                (ChessType::Soldier, Side::Black) => Some('卒'), 
+                (ChessType::Pawn, Side::Red) => Some('兵'), 
+                (ChessType::Pawn, Side::Black) => Some('卒'), 
             }
         } else {
             None 

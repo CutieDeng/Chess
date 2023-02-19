@@ -28,7 +28,7 @@ impl ChessBoard {
     pub fn new() -> Self {
         let mut board = [ [ ChessPiece ( None ) ; 10 ] ; 9 ] ; 
         // 初始化红方 
-        board [ 0 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Chariot , Side :: Red ) ) ) ; 
+        board [ 0 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Rook , Side :: Red ) ) ) ; 
         board [ 1 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Horse , Side :: Red ) ) ) ; 
         board [ 2 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Elephant , Side :: Red ) ) ) ; 
         board [ 3 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Guard , Side :: Red ) ) ) ;
@@ -36,16 +36,16 @@ impl ChessBoard {
         board [ 5 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Guard , Side :: Red ) ) ) ;
         board [ 6 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Elephant , Side :: Red ) ) ) ;
         board [ 7 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Horse , Side :: Red ) ) ) ;
-        board [ 8 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Chariot , Side :: Red ) ) ) ;
+        board [ 8 ] [ 0 ] = ChessPiece ( Some ( ( ChessType :: Rook , Side :: Red ) ) ) ;
         board [ 1 ] [ 2 ] = ChessPiece ( Some ( ( ChessType :: Cannon , Side :: Red ) ) ) ;
         board [ 7 ] [ 2 ] = ChessPiece ( Some ( ( ChessType :: Cannon , Side :: Red ) ) ) ;
-        board [ 0 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Red ) ) ) ;
-        board [ 2 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Red ) ) ) ;
-        board [ 4 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Red ) ) ) ;
-        board [ 6 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Red ) ) ) ;
-        board [ 8 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Red ) ) ) ;
+        board [ 0 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Red ) ) ) ;
+        board [ 2 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Red ) ) ) ;
+        board [ 4 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Red ) ) ) ;
+        board [ 6 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Red ) ) ) ;
+        board [ 8 ] [ 3 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Red ) ) ) ;
         // 初始化黑方
-        board [ 0 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Chariot , Side :: Black ) ) ) ;
+        board [ 0 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Rook , Side :: Black ) ) ) ;
         board [ 1 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Horse , Side :: Black ) ) ) ;
         board [ 2 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Elephant , Side :: Black ) ) ) ;
         board [ 3 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Guard , Side :: Black ) ) ) ;
@@ -53,14 +53,14 @@ impl ChessBoard {
         board [ 5 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Guard , Side :: Black ) ) ) ;
         board [ 6 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Elephant , Side :: Black ) ) ) ;
         board [ 7 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Horse , Side :: Black ) ) ) ;
-        board [ 8 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Chariot , Side :: Black ) ) ) ;
+        board [ 8 ] [ 9 ] = ChessPiece ( Some ( ( ChessType :: Rook , Side :: Black ) ) ) ;
         board [ 1 ] [ 7 ] = ChessPiece ( Some ( ( ChessType :: Cannon , Side :: Black ) ) ) ;
         board [ 7 ] [ 7 ] = ChessPiece ( Some ( ( ChessType :: Cannon , Side :: Black ) ) ) ;
-        board [ 0 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Black ) ) ) ;
-        board [ 2 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Black ) ) ) ;
-        board [ 4 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Black ) ) ) ;
-        board [ 6 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Black ) ) ) ;
-        board [ 8 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Soldier , Side :: Black ) ) ) ;
+        board [ 0 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Black ) ) ) ;
+        board [ 2 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Black ) ) ) ;
+        board [ 4 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Black ) ) ) ;
+        board [ 6 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Black ) ) ) ;
+        board [ 8 ] [ 6 ] = ChessPiece ( Some ( ( ChessType :: Pawn , Side :: Black ) ) ) ;
         ChessBoard(board)
     } 
 }
@@ -69,5 +69,5 @@ impl ChessBoard {
 fn test_basic_new() {
     let board = ChessBoard::new(); 
     let p_0_0 = board.0[0][0] .0.unwrap(); 
-    assert! ( p_0_0 .0 == ChessType :: Chariot && p_0_0 .1 == Side :: Red ); 
+    assert! ( p_0_0 .0 == ChessType :: Rook && p_0_0 .1 == Side :: Red ); 
 }
