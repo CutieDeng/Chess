@@ -100,3 +100,33 @@ fn test_point_upword_2() {
     let point = point.unwrap().up().unwrap().up().unwrap().up(); 
     assert! ( point.is_none() ); 
 }
+
+impl Point {
+    /// 判断是否为红方势力点位
+    pub fn is_red_camp(&self) -> bool {
+        self.1 <= 4 
+    }
+    /// 判断是否为黑方势力点位 
+    pub fn is_black_camp(&self) -> bool {
+        self.1 >= 5 
+    }
+}
+
+impl Point {
+    /// 左上方的点位 
+    pub fn left_up( &self ) -> Option < Point > {
+        self.left().as_ref().map(Point::up).flatten() 
+    } 
+    /// 右上方的点位 
+    pub fn right_up( &self ) -> Option < Point > {
+        self.right().as_ref().map(Point::up).flatten() 
+    } 
+    /// 左下方的点位 
+    pub fn left_down( &self ) -> Option < Point > {
+        self.left().as_ref().map(Point::down).flatten() 
+    } 
+    /// 右下方的点位 
+    pub fn right_down( &self ) -> Option < Point > {
+        self.right().as_ref().map(Point::down).flatten() 
+    } 
+}

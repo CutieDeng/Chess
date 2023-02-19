@@ -330,3 +330,87 @@ fn cannon_steps ( from : Point , camp : Side , board : &ChessBoard , result : &m
     }
     count 
 } 
+
+/// 假设当前位置是象，获取它的可行位置
+fn elephant_steps ( from : Point , camp : Side , board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+    let mut count = 0; 
+    // 检查象的左上方是否有棋子 
+    let raw_left_up = from.left_up(); 
+    // 如果左上方的点位有效
+    if let Some ( left_up ) = raw_left_up { 
+        // 检查该点位是否有棋子 
+        let left_up_chess = board.get(left_up); 
+        // 如果没有棋子 
+        if let None = left_up_chess.0 {
+            // 则检查该点位的左上方是否有棋子 
+            if let Some ( left_up_up ) = left_up.left_up() {
+                let left_up_up_chess = board.get(left_up_up); 
+                // 只要其不与当前象同一方，就可以走到该点位 
+                if ! left_up_up_chess.same_side(camp) {
+                    result.push(left_up_up); 
+                    count += 1;
+                } 
+            }
+        }
+    } 
+    // 检查象的右上方是否有棋子 
+    let raw_right_up = from.right_up();
+    // 如果右上方的点位有效
+    if let Some ( right_up ) = raw_right_up { 
+        // 检查该点位是否有棋子 
+        let right_up_chess = board.get(right_up); 
+        // 如果没有棋子 
+        if let None = right_up_chess.0 {
+            // 则检查该点位的右上方是否有棋子 
+            if let Some ( right_up_up ) = right_up.right_up() {
+                let right_up_up_chess = board.get(right_up_up); 
+                // 只要其不与当前象同一方，就可以走到该点位 
+                if ! right_up_up_chess.same_side(camp) {
+                    result.push(right_up_up); 
+                    count += 1;
+                } 
+            }
+        }
+    }
+    // 检查象的左下方是否有棋子
+    let raw_left_down = from.left_down();
+    // 如果左下方的点位有效
+    if let Some ( left_down ) = raw_left_down { 
+        // 检查该点位是否有棋子 
+        let left_down_chess = board.get(left_down); 
+        // 如果没有棋子 
+        if let None = left_down_chess.0 {
+            // 则检查该点位的左下方是否有棋子 
+            if let Some ( left_down_down ) = left_down.left_down() {
+                let left_down_down_chess = board.get(left_down_down); 
+                // 只要其不与当前象同一方，就可以走到该点位 
+                if ! left_down_down_chess.same_side(camp) {
+                    result.push(left_down_down); 
+                    count += 1;
+                } 
+            }
+        }
+    }
+    // 检查象的右下方是否有棋子
+    let raw_right_down = from.right_down();
+    // 如果右下方的点位有效
+    if let Some ( right_down ) = raw_right_down { 
+        // 检查该点位是否有棋子 
+        let right_down_chess = board.get(right_down); 
+        // 如果没有棋子 
+        if let None = right_down_chess.0 {
+            // 则检查该点位的右下方是否有棋子 
+            if let Some ( right_down_down ) = right_down.right_down() {
+                let right_down_down_chess = board.get(right_down_down); 
+                // 只要其不与当前象同一方，就可以走到该点位 
+                if ! right_down_down_chess.same_side(camp) {
+                    result.push(right_down_down); 
+                    count += 1;
+                } 
+            }
+        }
+    }
+    count
+}
+
+// fn guard
