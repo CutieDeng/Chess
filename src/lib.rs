@@ -1,4 +1,4 @@
-#![feature( never_type )]
+#![feature( never_type , drain_filter )]
 //! 中华象棋游戏库
 //! 
 //! 本游戏库共分为两部分：GUI 处理和 游戏逻辑内核处理 
