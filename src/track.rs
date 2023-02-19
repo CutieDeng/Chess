@@ -535,3 +535,42 @@ fn king_steps( from : Point , camp : Side , board : &ChessBoard , result : &mut 
     count 
 }
 
+/// 假设当前位置是兵，获取它的可行位置 
+fn solider_steps ( from : Point , camp : Side , board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+    let mut count = 0; 
+    let nxt = match camp {
+        Side::Red => Point::up, 
+        Side::Black => Point::down, 
+    }; 
+    let raw_up = nxt(&from); 
+    if let Some ( up ) = raw_up {
+        let up_chess = board.get(up); 
+        if ! up_chess.same_side(camp) {
+            result.push(up); 
+            count += 1; 
+        }
+    }
+    let left_right_support = match camp {
+        Side::Red => from.is_black_camp(), 
+        Side::Black => from.is_red_camp(), 
+    }; 
+    if left_right_support {
+        let raw_left = from.left(); 
+        if let Some ( left ) = raw_left {
+            let left_chess = board.get(left); 
+            if ! left_chess.same_side(camp) {
+                result.push(left); 
+                count += 1; 
+            }
+        }
+        let raw_right = from.right(); 
+        if let Some ( right ) = raw_right {
+            let right_chess = board.get(right); 
+            if ! right_chess.same_side(camp) {
+                result.push(right); 
+                count += 1; 
+            }
+        } 
+    }
+    count 
+} 
