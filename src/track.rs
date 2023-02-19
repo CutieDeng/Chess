@@ -13,6 +13,12 @@ pub struct BoardTrack {
     steps: Vec<Step>, 
 }
 
+impl BoardTrack {
+    pub fn chess_board(&self) -> &ChessBoard {
+        &self.inner
+    } 
+}
+
 pub struct StepTransaction <'a> ( 
     &'a mut BoardTrack, 
     Step 
