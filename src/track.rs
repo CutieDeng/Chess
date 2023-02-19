@@ -164,7 +164,7 @@ fn horse_steps ( from : Point , camp : Side, board : &ChessBoard , result : &mut
 }
 
 /// 假设当前位置是车，获取它的可行位置 
-fn car_steps ( from : Point , camp : Side, board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+fn chariot_steps ( from : Point , camp : Side, board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
     let mut count = 0; 
     // 检查车的左边是否有棋子 
     let mut raw_left = from.left(); 
@@ -232,3 +232,101 @@ fn car_steps ( from : Point , camp : Side, board : &ChessBoard , result : &mut V
     } 
     count 
 }
+
+/// 假设当前位置是炮，获取它的可行位置 
+fn cannon_steps ( from : Point , camp : Side , board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+    let mut count = 0; 
+    // 检查炮的左边是否有棋子 
+    let mut raw_left = from.left(); 
+    let mut left_chess_meet = false;
+    while let Some ( left ) = raw_left { 
+        let left_chess = board.get(left); 
+        if let None = left_chess.0 {
+            if ! left_chess_meet { 
+                result.push(left); 
+                count += 1;
+            }
+        } else {
+            if left_chess_meet {
+                if ! left_chess.same_side(camp) {
+                    result.push(left); 
+                    count += 1;
+                }
+                break;
+            } else {
+                left_chess_meet = true; 
+            }
+        }
+        raw_left = left.left();
+    } 
+    // 检查炮的右边是否有棋子 
+    let mut raw_right = from.right();
+    let mut right_chess_meet = false;
+    while let Some ( right ) = raw_right { 
+        let right_chess = board.get(right); 
+        if let None = right_chess.0 {
+            if ! right_chess_meet { 
+                result.push(right); 
+                count += 1;
+            }
+        } else {
+            if right_chess_meet {
+                if ! right_chess.same_side(camp) {
+                    result.push(right); 
+                    count += 1;
+                }
+                break;
+            } else {
+                right_chess_meet = true; 
+            }
+        }
+        raw_right = right.right();
+    }
+    // 检查炮的上面是否有棋子
+    let mut raw_up = from.up();
+    let mut up_chess_meet = false;
+    while let Some ( up ) = raw_up { 
+        let up_chess = board.get(up); 
+        if let None = up_chess.0 {
+            if ! up_chess_meet { 
+                result.push(up); 
+                count += 1;
+            }
+        } else {
+            if up_chess_meet {
+                if ! up_chess.same_side(camp) {
+                    result.push(up); 
+                    count += 1;
+                }
+                break;
+            } else {
+                up_chess_meet = true; 
+            }
+        }
+        raw_up = up.up();
+    }
+    // 检查炮的下面是否有棋子
+    let mut raw_down = from.down();
+    let mut down_chess_meet = false;
+    while let Some ( down ) = raw_down { 
+        let down_chess = board.get(down); 
+        if let None = down_chess.0 {
+            if ! down_chess_meet { 
+                result.push(down); 
+                count += 1;
+            }
+        } else {
+            if down_chess_meet {
+                if ! down_chess.same_side(camp) {
+                    result.push(down); 
+                    count += 1;
+                }
+                break;
+            } else {
+                down_chess_meet = true; 
+            }
+        }
+        raw_down = down.down();
+    }
+    count 
+} 
