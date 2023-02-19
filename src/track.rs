@@ -3,7 +3,7 @@
 //! 用于记录棋盘操作、回放棋盘操作、追踪棋盘操作 
 //! 
 
-use crate::{chess::ChessBoard, step::Step, piece::{ChessPiece, Side}, point::Point};
+use crate::{chess::ChessBoard, step::Step, piece::{ChessPiece, Side, ChessType}, point::{Point, self, point}};
 
 pub struct BoardTrack {
     inner : ChessBoard, 
@@ -413,4 +413,125 @@ fn elephant_steps ( from : Point , camp : Side , board : &ChessBoard , result : 
     count
 }
 
-// fn guard
+/// 假设当前位置是士，获取它的可行位置 
+fn guard_steps( from : Point , camp : Side , board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+    let mut count = 0; 
+    // 获得当前的九宫中心位置 
+    let king_pos = match camp {
+        Side::Red => {
+            point( 4 , 1 ) 
+        }
+        Side::Black => {
+            point( 4 , 8 )
+        }
+    } .unwrap(); 
+    // 检查当前节点的左上方
+    let raw_left_up = from.left_up(); 
+    if let Some ( left_up ) = raw_left_up { 
+        let left_up_chess = board.get(left_up); 
+        if ! left_up_chess.same_side(camp) && king_pos.dis(&left_up) <= 2 {
+            result.push(left_up); 
+            count += 1; 
+        }
+    } 
+    // 检查当前节点的右上方 
+    let raw_right_up = from.right_up(); 
+    if let Some ( right_up ) = raw_right_up { 
+        let right_up_chess = board.get(right_up); 
+        if ! right_up_chess.same_side(camp) && king_pos.dis(&right_up) <= 2 {
+            result.push(right_up); 
+            count += 1; 
+        }
+    } 
+    // 检查当前节点的左下方 
+    let raw_left_down = from.left_down(); 
+    if let Some ( left_down ) = raw_left_down { 
+        let left_down_chess = board.get(left_down); 
+        if ! left_down_chess.same_side(camp) && king_pos.dis(&left_down) <= 2 {
+            result.push(left_down); 
+            count += 1; 
+        }
+    } 
+    // 检查当前节点的右下方 
+    let raw_right_down = from.right_down();
+    if let Some ( right_down ) = raw_right_down { 
+        let right_down_chess = board.get(right_down); 
+        if ! right_down_chess.same_side(camp) && king_pos.dis(&right_down) <= 2 {
+            result.push(right_down); 
+            count += 1; 
+        }
+    }
+    count 
+}
+
+/// 假设当前位置是将，获取它的可行位置 
+fn king_steps( from : Point , camp : Side , board : &ChessBoard , result : &mut Vec < Point > ) -> usize {
+    let mut count = 0; 
+    // 获得当前的九宫中心位置
+    let king_pos = match camp {
+        Side::Red => {
+            point( 4 , 1 ) 
+        }
+        Side::Black => {
+            point( 4 , 8 )
+        }
+    } .unwrap();
+    // 检查当前节点的左方
+    let raw_left = from.left(); 
+    if let Some ( left ) = raw_left { 
+        let left_chess = board.get(left); 
+        if ! left_chess.same_side(camp) && left.special_area() && king_pos.dis(&left) <= 2 {
+            result.push(left); 
+            count += 1; 
+        }
+    } 
+    // 检查当前节点的右方 
+    let raw_right = from.right();
+    if let Some ( right ) = raw_right { 
+        let right_chess = board.get(right); 
+        if ! right_chess.same_side(camp) && right.special_area() && king_pos.dis(&right) <= 2 {
+            result.push(right); 
+            count += 1; 
+        }
+    } 
+    // 检查当前节点的上方
+    let raw_up = from.up();
+    if let Some ( up ) = raw_up { 
+        let up_chess = board.get(up); 
+        if ! up_chess.same_side(camp) && up.special_area() && king_pos.dis(&up) <= 2 {
+            result.push(up); 
+            count += 1; 
+        }
+    }
+    // 检查当前节点的下方
+    let raw_down = from.down();
+    if let Some ( down ) = raw_down { 
+        let down_chess = board.get(down); 
+        if ! down_chess.same_side(camp) && down.special_area() && king_pos.dis(&down) <= 2 {
+            result.push(down); 
+            count += 1; 
+        }
+    }
+    // 检查是否王王相见
+    let nxt = match camp {
+        Side::Red => Point::down,  
+        Side::Black => Point::up, 
+    }; 
+    let mut pos = from; 
+    while let Some ( next ) = nxt(&pos) {
+        let chess = board.get(next); 
+        match chess.0 {
+            Some(p) => {
+                if p.0 == ChessType::King {
+                    result.push(next); 
+                    count += 1; 
+                }
+                break; 
+            },
+            None => (),
+        }
+        pos = next; 
+    } 
+    count 
+}
+

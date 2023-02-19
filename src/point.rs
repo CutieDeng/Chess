@@ -130,3 +130,14 @@ impl Point {
         self.right().as_ref().map(Point::down).flatten() 
     } 
 }
+
+impl Point {
+    pub fn dis( &self, other: &Point ) -> usize {
+        let x = self.0 as isize - other.0 as isize; 
+        let y = self.1 as isize - other.1 as isize; 
+        ( x.abs() + y.abs() ) as usize 
+    } 
+    pub fn special_area( &self ) -> bool {
+        self.0 >= 3 && self.0 <= 5 
+    }
+}
