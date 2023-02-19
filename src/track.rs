@@ -26,8 +26,6 @@ impl <'a> StepTransaction <'a> {
         self.0.steps.push(self.1);  
         self.0.inner.set(end_step, self.0.inner.get(start_step)); 
         self.0.inner.set(start_step, ChessPiece(None)); 
-        // self.0.inner.0[end_step.x()][end_step.y()] = self.0.inner.0[start_step.x()][start_step.y()]; 
-        // self.0.inner.0[start_step.x()][start_step.y()] = ChessPiece(None); 
     }
 }
 
